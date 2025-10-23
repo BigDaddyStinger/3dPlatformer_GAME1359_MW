@@ -138,7 +138,7 @@ public class GrannyController : MonoBehaviour
 
             rotationY = Mathf.Clamp(rotationY, -40, 40);
 
-            camTarget.localEulerAngles = new Vector3(rotationY, 0, 0);
+            camTarget.localEulerAngles = new Vector3(-rotationY, 0, 0);
 
             rotationX = aimInput.x * playerRotationSpeed * Time.fixedDeltaTime;
 
