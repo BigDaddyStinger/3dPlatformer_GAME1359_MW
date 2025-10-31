@@ -13,6 +13,8 @@ public class GrannyAttackScript : MonoBehaviour
     public int comboID = 1;
     public float meleeTimer = 0.5f;
     public float comboTimer = 0.75f;
+    public float _melee;
+    public float _combo;
     public bool canMelee;
 
     [Header("Bullet Variables")]
@@ -27,7 +29,7 @@ public class GrannyAttackScript : MonoBehaviour
     public MultiAimConstraint _bodyAim;
 
     [Header("Charge Shot Variables")]
-    [SerializeField] private float chargeGauge;
+    [SerializeField] public float chargeGauge;
     public float chargeTimer = 1.5f;
     public bool isCharging;
 
@@ -57,6 +59,36 @@ public class GrannyAttackScript : MonoBehaviour
 
     private void Update()
     {
+        // Melee / combo setup
+
+        if (_melee <= 0)
+        {
+            canMelee = true ;
+        }
+        else
+        {
+            canMelee = false ;
+        }
+
+        _melee -= Time.deltaTime;
+
+        _combo -= Time.deltaTime;
+
+        if (_combo <= 0)
+        {
+            comboID = 1;
+            _combo = 0 ;
+        }
+
+        if (_melee <= 0)
+        {
+            _melee = 0 ;
+        }
+
+
+
+
+        //===== Melee / shooter set up
 
         if (_actions.Player.Attack.triggered)
         {
@@ -69,6 +101,7 @@ public class GrannyAttackScript : MonoBehaviour
                 StartCoroutine(MeleeAttack());
             }
         }
+
 
         //========= Charging Actions ===========
 
@@ -124,32 +157,35 @@ public class GrannyAttackScript : MonoBehaviour
 
     IEnumerator MeleeAttack()
     {
+        _combo = comboTimer;
+        _melee = meleeTimer;
+
         if (comboID == 1)
         {
             comboID = 2;
             _anim.SetTrigger("Swing01");
             comboTimer = 1f;
         }
-        else if (comboID == 2 && comboTimer > 0)
+        else if (comboID == 2 && _combo > 0)
         {
             comboID = 3;
             _anim.SetTrigger("Swing02");
             comboTimer = 1f;
         }
-        else if (comboID == 3 && comboTimer > 0)
+        else if (comboID == 3 && _combo > 0)
         {
             comboID = 1;
             _anim.SetTrigger("Swing03");
         }
 
 
-        canMelee = false;
+        //canMelee = false;
         yield return new WaitForSeconds(0.25f);
         playerHitSphere.SetActive(true);
         yield return new WaitForSeconds(0.1f);
         playerHitSphere.SetActive(false);
         yield return new WaitForSeconds(0.4f);
-        canMelee = true;
+        //canMelee = true;
     }
 
     IEnumerator RegularShot()
