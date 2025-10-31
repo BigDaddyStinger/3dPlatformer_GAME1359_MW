@@ -148,6 +148,7 @@ public class GrannyController : MonoBehaviour
 
     void PlayerJump()
     {
+        Debug.Log("JumpPressed");
         _rigidbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
     }
 }

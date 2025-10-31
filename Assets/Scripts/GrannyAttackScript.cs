@@ -1,10 +1,19 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Animations.Rigging;
 
 public class GrannyAttackScript : MonoBehaviour
 {
     [SerializeField] GrannyI_InputActions _actions;
     [SerializeField] GrannyController _controller;
+    [SerializeField] private Animator _anim;
+
+    [Header("Melee Variables")]
+    public GameObject playerHitSphere;
+    public int comboID = 1;
+    public float meleeTimer = 0.5f;
+    public float comboTimer = 0.75f;
+    public bool canMelee;
 
     [Header("Bullet Variables")]
     public float bulletSpeed = 200f;
@@ -15,6 +24,7 @@ public class GrannyAttackScript : MonoBehaviour
     [Header("Aim Variables")]
     public Transform _indicator;
     public LayerMask _aimColliderMask = new LayerMask();
+    public MultiAimConstraint _bodyAim;
 
     [Header("Charge Shot Variables")]
     [SerializeField] private float chargeGauge;
@@ -26,6 +36,13 @@ public class GrannyAttackScript : MonoBehaviour
     {
         _actions = new GrannyI_InputActions();
         _controller = GetComponent<GrannyController>();
+        _anim = GetComponentInChildren<Animator>();
+    }
+
+    private void Start()
+    {
+        playerHitSphere.SetActive(false);
+        canMelee = true;
     }
 
     private void OnEnable()
@@ -40,11 +57,16 @@ public class GrannyAttackScript : MonoBehaviour
 
     private void Update()
     {
+
         if (_actions.Player.Attack.triggered)
         {
             if (_controller.zoomIn)
             {
                 StartCoroutine(RegularShot());
+            }
+            else if (canMelee)
+            {
+                StartCoroutine(MeleeAttack());
             }
         }
 
@@ -77,6 +99,15 @@ public class GrannyAttackScript : MonoBehaviour
         //======================================
 
         //=========== Aim Controls =================
+        if (_controller.zoomIn)
+        {
+            _bodyAim.weight = 0.8f;
+        }
+        else
+        {
+            _bodyAim.weight= 0f;
+        }
+
         Vector2 screenCenterPoint = new Vector2(Screen.width / 2, Screen.height / 2);
 
         Ray ray = Camera.main.ScreenPointToRay(screenCenterPoint);
@@ -88,6 +119,37 @@ public class GrannyAttackScript : MonoBehaviour
 
         //==========================================
 
+        _anim.SetBool("Melee", canMelee);
+    }
+
+    IEnumerator MeleeAttack()
+    {
+        if (comboID == 1)
+        {
+            comboID = 2;
+            _anim.SetTrigger("Swing01");
+            comboTimer = 1f;
+        }
+        else if (comboID == 2 && comboTimer > 0)
+        {
+            comboID = 3;
+            _anim.SetTrigger("Swing02");
+            comboTimer = 1f;
+        }
+        else if (comboID == 3 && comboTimer > 0)
+        {
+            comboID = 1;
+            _anim.SetTrigger("Swing03");
+        }
+
+
+        canMelee = false;
+        yield return new WaitForSeconds(0.25f);
+        playerHitSphere.SetActive(true);
+        yield return new WaitForSeconds(0.1f);
+        playerHitSphere.SetActive(false);
+        yield return new WaitForSeconds(0.4f);
+        canMelee = true;
     }
 
     IEnumerator RegularShot()
